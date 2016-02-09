@@ -1,4 +1,4 @@
-function [ precision, recall, F1 ] = Evaluation( QueryGroundTruth, DataGroundTruth, QueryResult )
+function [ precision, recall, F1 ] = Evaluation( QueryGroundTruth, DataGroundTruth, QueryResult)
 %EVALUATION Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -26,7 +26,6 @@ for i=1:length(DataGroundTruth)
       RecallSize = RecallSize + 1 ;
    end
 end
-
 for i=1:QuerySize
    if QueryGroundTruth == Result(i)
       QueryRecall = QueryRecall + 1 ;

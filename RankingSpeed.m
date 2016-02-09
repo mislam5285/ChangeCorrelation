@@ -1,91 +1,31 @@
 % The main method of sythetic data experiment.
 
 %Data Set 
-GTFile = 'GroundTruth4' ;
-DataFile = 'Subset4' ;
+GTFile = 'GroundTruth5' ;
+DataFile = 'Subset5' ;
 %GroundTruth = dlmread(GTFile);
 %data = dlmread(DataFile);
 
-WindowSize = 200;
+
 syms TestDataIndex;
 syms TestDataDimension;
-DataSetType = 0
+Size = 100
+index = 1;
+TimeList = zeros(10,7);
+SizeList = zeros(10,1);
 
-while DataSetType > -1
+while Size < 1001
 
-switch DataSetType
-	case 0
-		TestDataIndex = 1:10000;
-		TestDataDimension = 1:5000;
-	case 1
-		TestDataIndex = 1:10000;
-		TestDataDimension = 1:2000;
-	case 2
-		TestDataIndex = 1:10000;
-		TestDataDimension = 1:800;
-	case 3
-		TestDataIndex = zeros(5000,1);
-		TestDataIndex(1:1000,1) = 1:1000 ;
-		TestDataIndex(1001:2000,1) = 2001:3000 ;
-		TestDataIndex(2001:3000,1) = 4001:5000 ;
-		TestDataIndex(3001:4000,1) = 6001:7000 ;
-		TestDataIndex(4001:5000,1) = 8001:9000 ;
-
-		TestDataDimension = 1:5000;
-	case 4
-		TestDataIndex = zeros(5000,1);
-		TestDataIndex(1:1000,1) = 1:1000 ;
-		TestDataIndex(1001:2000,1) = 2001:3000 ;
-		TestDataIndex(2001:3000,1) = 4001:5000 ;
-		TestDataIndex(3001:4000,1) = 6001:7000 ;
-		TestDataIndex(4001:5000,1) = 8001:9000 ;
-
-		TestDataDimension = 1:2000;
-	case 5
-		TestDataIndex = zeros(5000,1);
-		TestDataIndex(1:1000,1) = 1:1000 ;
-		TestDataIndex(1001:2000,1) = 2001:3000 ;
-		TestDataIndex(2001:3000,1) = 4001:5000 ;
-		TestDataIndex(3001:4000,1) = 6001:7000 ;
-		TestDataIndex(4001:5000,1) = 8001:9000 ;
-
-		TestDataDimension = 1:800;
-	case 6
-		TestDataIndex = zeros(1000,1);
-		TestDataIndex(1:200,1) = 1:200 ;
-		TestDataIndex(201:400,1) = 2001:2200 ;
-		TestDataIndex(401:600,1) = 4001:4200 ;
-		TestDataIndex(601:800,1) = 6001:6200 ;
-		TestDataIndex(801:1000,1) = 8001:8200 ;
-
-		TestDataDimension = 1:5000;
-	case 7
-		TestDataIndex = zeros(1000,1);
-		TestDataIndex(1:200,1) = 1:200 ;
-		TestDataIndex(201:400,1) = 2001:2200 ;
-		TestDataIndex(401:600,1) = 4001:4200 ;
-		TestDataIndex(601:800,1) = 6001:6200 ;
-		TestDataIndex(801:1000,1) = 8001:8200 ;
-
-		TestDataDimension = 1:2000;
-	case 8
-		TestDataIndex = zeros(1000,1);
-		TestDataIndex(1:200,1) = 1:200 ;
-		TestDataIndex(201:400,1) = 2001:2200 ;
-		TestDataIndex(401:600,1) = 4001:4200 ;
-		TestDataIndex(601:800,1) = 6001:6200 ;
-		TestDataIndex(801:1000,1) = 8001:8200 ;
-
-		TestDataDimension = 1:800;
-
-	otherwise;
-end
+TestDataIndex = 1:1000;
+TestDataDimension = 1:600;
+SizeList(index,1) = Size ;
 
 TestData = data(TestDataIndex,TestDataDimension);
 TestGroundTruth = GroundTruth(TestDataIndex,:);
 
 DataSize = size(TestData,1)
 Length = size(TestData,2)
+WindowSize = Length/2 ;
 
 Bitstream = zeros(size(TestData,1),Length/WindowSize);
 
@@ -117,96 +57,74 @@ for j=1:Length/WindowSize
 end
 
 
-TopK = DataSize;
-ListSize = 15 ;
-Step = int16(TopK/ListSize) - 1;
-
-PrecisionList = zeros(ListSize,7) ;
-RecallList = zeros(ListSize,7) ;
-
-i = 1;
-k = 0;
-
-for i = 1:ListSize
-k = k + Step 
+TopK = Size;
+k=TopK;
 % Distance Type: 0. Minhash, 1. L1, 2. L2, 3. DTW, 4. Pearson, 5. Kendall tau rank Correlation, 6. Spearman Rank Correlation
 
+tic;
 QueryList = SearchFunction(QueryBit,Bitstream,k,0) ;
 [ precision, recall, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList) ;
 X = sprintf('Hash Correlation: Precision: %f, Recall: %f, F1: %f',precision,recall,F1);
 disp(X) ;
-
-PrecisionList(i,1) = precision;
-RecallList(i,1) = recall;
-
+TimeList(index,1) = toc;
 %L1
 
+tic;
 QueryList = SearchFunction(QueryData,TestData,k,1) ;
 [ precision, recall, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList) ;
 X = sprintf('L1 Measure: Precision: %f, Recall: %f, F1: %f',precision,recall,F1);
 disp(X) ;
-
-PrecisionList(i,2) = precision;
-RecallList(i,2) = recall;
-
+TimeList(index,2) = toc;
 
 %L2
 
+tic;
 QueryList = SearchFunction(QueryData,TestData,k,2) ;
 [ precision1, recall1, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList ) ;
 X = sprintf('L2 Measure: Precision: %f, Recall: %f, F1: %f',precision1,recall1,F1);
 disp(X) ;
-
-PrecisionList(i,3) = precision;
-RecallList(i,3) = recall;
-
+TimeList(index,3) = toc;
 %DTW
 
+tic;
 QueryList = SearchFunction(QueryData,TestData,k,3) ;
 [ precision1, recall1, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList ) ;
 X = sprintf('DTW Measure: Precision: %f, Recall: %f, F1: %f',precision1,recall1,F1);
 disp(X) ;
-
-PrecisionList(i,4) = precision;
-RecallList(i,4) = recall;
-
+TimeList(index,4) = toc;
 %Pearson
 
+tic;
 QueryList = SearchFunction(QueryData,TestData,k,4) ;
 
 [ precision, recall, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList ) ;
 X = sprintf('Pearson: Precision: %f, Recall: %f, F1: %f',precision,recall,F1);
 disp(X) ;
-
-PrecisionList(i,5) = precision;
-RecallList(i,5) = recall;
+TimeList(index,5) = toc;
 
 %Kendall
 
+tic;
 QueryList = SearchFunction(QueryData,TestData,k,5) ;
 
 [ precision, recall, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList ) ;
 X = sprintf('Kendall: Precision: %f, Recall: %f, F1: %f',precision,recall,F1);
 disp(X) ;
-
-PrecisionList(i,6) = precision;
-RecallList(i,6) = recall;
-
+TimeList(index,6) = toc;
 %Spearman
 
+tic;
 QueryList = SearchFunction(QueryData,TestData,k,6) ;
 
 [ precision, recall, F1 ] = Evaluation( GroundTruth(QueryNodeIndex), TestGroundTruth, QueryList ) ;
 X = sprintf('Spearman: Precision: %f, Recall: %f, F1: %f',precision,recall,F1);
 disp(X) ;
+TimeList(index,7) = toc;
 
-PrecisionList(i,7) = precision;
-RecallList(i,7) = recall;
 
+Size = Size + 100;
+index=index+1;
 end
 
-str = int2str(DataSetType);
-filename = strcat(str,'.mat');
-save (filename,'PrecisionList','RecallList');
-DataSetType = DataSetType - 1;
-end
+save ('VarDataTopK','TimeList','SizeList');
+disp('Saving Done!');

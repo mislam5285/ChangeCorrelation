@@ -1,59 +1,58 @@
-function [Acc,rand_index,match]=AccMeasure(T,idx)
-%Measure percentage of Accuracy and the Rand index of clustering results
-% The number of class must equal to the number cluster 
+function [accuracy, true_labels, CM] = AccMeasure(yte, y)
+%# Function for calculating clustering accuray and matching found 
+%# labels with true labels. Assumes yte and y both are Nx1 vectors with
+%# clustering labels. Does not support fuzzy clustering.
+%#
+%# Algorithm is based on trying out all reorderings of cluster labels, 
+%# e.g. if yte = [1 2 2], try [1 2 2] and [2 1 1] so see witch fit 
+%# the truth vector the best. Since this approach makes use of perms(),
+%# the code will not run for unique(yte) greater than 10, and it will slow
+%# down significantly for number of clusters greater than 7.
+%#
+%# Input:
+%#   yte - result from clustering (y-test)
+%#   y   - truth vector
+%#
+%# Output:
+%#   accuracy    -   Overall accuracy for entire clustering (OA). For
+%#                   overall error, use OE = 1 - OA.
+%#   true_labels -   Vector giving the label rearangement witch best 
+%#                   match the truth vector (y).
+%#   CM          -   Confusion matrix. If unique(yte) = 4, produce a
+%#                   4x4 matrix of the number of different errors and  
+%#                   correct clusterings done.
 
-%Output
-% Acc = Accuracy of clustering results
-% rand_index = Rand's Index,  measure an agreement of the clustering results
-% match = 2xk mxtrix which are the best match of the Target and clustering results
+yte = yte';
+y=y';
+N = length(y);
 
-%Input
-% T = 1xn target index
-% idx =1xn matrix of the clustering results
+cluster_names = unique(yte);
+accuracy = 0;
+maxInd = 1;
 
-% EX:
-% X=[randn(200,2);randn(200,2)+6,;[randn(200,1)+12,randn(200,1)]]; T=[ones(200,1);ones(200,1).*2;ones(200,1).*3];
-% idx=kmeans(X,3,'emptyaction','singleton','Replicates',5);
-%  [Acc,rand_index,match]=Acc_measure(T,idx)
+perm = perms(unique(y));
+[pN pM] = size(perm);
 
-k=max(T);
-n=length(T);
-for i=1:k
-    temp=find(T==i);
-    a{i}=temp; %#ok<AGROW>
+true_labels = y;
+
+for i=1:pN
+    flipped_labels = zeros(1,N);
+    for cl = 1 : pM
+        flipped_labels(yte==cluster_names(cl)) = perm(i,cl);
+    end
+
+    testAcc = sum(flipped_labels == y')/N;
+    if testAcc > accuracy
+        accuracy = testAcc;
+        maxInd = i;
+        true_labels = flipped_labels;
+    end
+
 end
 
-b1=[];
-t1=zeros(1,k);
-for i=1:k
-    tt1=find(idx==i);
-    for j=1:k
-       t1(j)=sum(ismember(tt1,a{j}));
-    end
-    b1=[b1;t1]; %#ok<AGROW>
-end
-    Members=zeros(1,k); 
-    
-P = perms((1:k));
-    Acc1=0;
-for pi=1:size(P,1)
-    for ki=1:k
-        Members(ki)=b1(P(pi,ki),ki);
-    end
-    if sum(Members)>Acc1
-        match=P(pi,:);
-        Acc1=sum(Members);
+CM = zeros(pM,pM);
+for rc = 1 : pM
+    for cc = 1 : pM
+        CM(rc,cc) = sum( ((y'==rc) .* (true_labels==cc)) );
     end
 end
-
-rand_ss1=0;
-rand_dd1=0;
-for xi=1:n-1
-    for xj=xi+1:n
-        rand_ss1=rand_ss1+((idx(xi)==idx(xj))&&(T(xi)==T(xj)));
-        rand_dd1=rand_dd1+((idx(xi)~=idx(xj))&&(T(xi)~=T(xj)));
-    end
-end
-rand_index=200*(rand_ss1+rand_dd1)/(n*(n-1));
-Acc=Acc1/n; 
-match=[1:k;match];

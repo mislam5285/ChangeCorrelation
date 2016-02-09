@@ -8,45 +8,42 @@ switch type
    case 0
 	  AB = 0.0;
 	  A_B = 0.0;
-      for i=1:size(A,2)
+      for i=1:length(A)
       	if A(i) == 1 & B(i) == 1
-			AB = AB + 1 ;
-		end
-		if A(i) == 1 | B(i) == 1
-			A_B = A_B + 1;
-		end
+			   AB = AB + 1 ;
+		   end
+		   if A(i) == 1 | B(i) == 1
+			   A_B = A_B + 1;
+		   end
       end
       % Some strategy here
       if sum(A) == 0 & sum(B) == 0
-	dist = 1 ;
+	      dist = 1 ;
       elseif sum(A) == 0 | sum(B) == 0
-        dist = 0;
+         dist = 0;
       else
-	 dist = AB/A_B ;
+	      dist = AB/A_B ;
       end
       
       % From similarity to distance
-	dist = - dist;
+	   dist = - dist;
    case 1
-      for i=1:size(A,1)
+      for i=1:length(A)
       	dist = dist + abs(A(i)-B(i)) ;
       end
    case 2
-      for i=1:size(A,1)
+      for i=1:length(A)
       	dist = dist + (A(i)-B(i))*(A(i)-B(i)) ;
       end
       dist = sqrt(dist) ;
    case 3
-      [dist,D,k,w]=dtw(A,B);
+      dist=dtw(A,B);
    case 4
-      [dist,PVAL] = corr(A',B','Type','Pearson');	
-      dist = -dist ;
+      dist = -corr(A',B','Type','Pearson');	
    case 5
-      [dist,PVAL] = corr(A',B','Type','Kendall');	
-      dist = -dist ;
+      dist = -corr(A',B','Type','Kendall');
    case 6
-      [dist,PVAL] = corr(A',B','Type','Spearman');	
-      dist = -dist ;
+      dist = -corr(A',B','Type','Spearman');	
    otherwise
 end
 
